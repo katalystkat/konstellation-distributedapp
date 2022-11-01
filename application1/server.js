@@ -1,4 +1,8 @@
 /* app.js */
+
+import otel from '@opentelemetry/core'
+import otelapi from '@opentelemetry/api'
+
 const path = require('path');
 const express = require("express");
 const PORT = process.env.PORT || "3001";
@@ -10,34 +14,46 @@ const app = express();
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, './index.html'));
 });
+
 app.post("/moveon", (req, res)=> {
-    console.log('moving on');
-    fetch('http://a2:3002')
-    .then(data => {
-      return res.status(200).json('check your trace');
+    console.log("Hit /moveon w/ POST @ " + getTimestamp())
+
+    // create a new propogator
+    const propogator = new otel.W3CTraceContextPropagator()
+
+    // get the current context
+    const context = otelapi.context;
+
+    const headers = {}
+
+    //injext the context into the headers
+    propogator.inject(context, headers)
+
+    // IN OTHER SERVICE, 
+    const gotContext = propogator.extract();
+
+    fetch('http://a2:3002', headers)
+    .then(response => {
+      if (response.status === 200) {
+        return res.status(200).json('Route Completed');
+      }
     })
-    
-    // res.redirect('k8s-default-fruiting-fa54ee7da7-1241372118.us-west-2.elb.amazonaws.com/a2');
 })
-/*
-//this will write the trace data to testData.json
-app.use("/v1/traces", (req, res) => {
-	console.log(req.body);
-	let data = req.body.resourceSpans;
-	fs.appendFileSync(path.resolve(__dirname, './testData.json'),
-	JSON.stringify(data) + '\n');
-	res.status(200).send("v1/traces endpoint")
-})
-*/
 
+function getTimestamp() {
+  let ts = Date.now();
 
-// //this will send the trace data to middleware that will write the data to a db
-// app.use("/v1/traces", serverController.writeToDB, (req, res, next) => {
-// 	// var decoded = await protobuf.decode(Buffer.from(req.body));
-//   	// console.log("this is the decoded req.body", decoded);
-// 	return res.status(200).send('hello');
-// })
+  let date_ob = new Date(ts);
+  let hours = date_ob.getHours();
+  let minutes = date_ob.getMinutes();
+  let seconds = date_ob.getSeconds();
+  let date = date_ob.getDate();
+  let month = date_ob.getMonth() + 1;
+  let year = date_ob.getFullYear();
 
+// prints date & time in YYYY-MM-DD format
+  return (year + "-" + month + "-" + date + " at " + hours + ":" + minutes + ":" + seconds);
+}
 
 app.use((err, req, res, next) => {
   const defaultErr = {
