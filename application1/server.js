@@ -1,38 +1,52 @@
 /* app.js */
 
-import otel from '@opentelemetry/core'
-import otelapi from '@opentelemetry/api'
+const otel = require('@opentelemetry/core')
+const otelapi = require('@opentelemetry/api')
+const fetch = require('node-fetch')
+const interceptor = require('./requestInterceptor')
 
 const path = require('path');
 const express = require("express");
+const { request } = require('http');
 const PORT = process.env.PORT || "3001";
 const app = express();
 
+interceptor.instrumentTraffic();
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, './index.html'));
 });
 
-app.post("/moveon", (req, res)=> {
+app.post("/moveon", async (req, res)=> {
     console.log("Hit /moveon w/ POST @ " + getTimestamp())
 
     // create a new propogator
     const propogator = new otel.W3CTraceContextPropagator()
+    console.log("Propogator Created");
 
     // get the current context
-    const context = otelapi.context;
+    const context = otelapi.ROOT_CONTEXT;
+    console.log("Got Context");
 
     const headers = {}
 
     //injext the context into the headers
     propogator.inject(context, headers)
+    console.log("Injected");
 
-    fetch('http://a2:3002', headers)
-    .then(response => {
-      if (response.status === 200) {
-        return res.status(200).json('Route Completed');
-      }
-    })
+    const response = await fetch('http://localhost:3002')
+    const data = await response.json();
+    console.log(data);
+
+    // return res.status(200).json('Route Completed')
+
+    
+    // fetch('http://localhost:3002', headers)
+    // .then(response => {
+    //   if (response.status === 200) {
+    //     return res.status(200).json('Route Completed');
+    //   }
+    // })
 })
 
 function getTimestamp() {
@@ -54,7 +68,7 @@ app.use((err, req, res, next) => {
   const defaultErr = {
     log: 'Express error handler caught unknown middleware error',
     status: 500,
-    message: { err: 'An error occurred' },
+    message: { err: err},
   };
   const errorObj = Object.assign({}, defaultErr, err);
   console.log(errorObj);

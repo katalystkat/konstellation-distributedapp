@@ -1,4 +1,7 @@
-/* app.js */
+
+const otel = require('@opentelemetry/core')
+const otelapi = require('@opentelemetry/api')
+
 const path = require('path');
 const express = require("express");
 const PORT = process.env.PORT || "3003";
@@ -8,7 +11,7 @@ const app = express();
 // app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, './index.html'));
+
 });
 
 app.post("/moveon", (req, res)=> {
@@ -55,7 +58,7 @@ app.use((err, req, res, next) => {
   const defaultErr = {
     log: 'Express error handler caught unknown middleware error',
     status: 500,
-    message: { err: 'An error occurred' },
+    message: { err: err },
   };
   const errorObj = Object.assign({}, defaultErr, err);
   console.log(errorObj);

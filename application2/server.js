@@ -1,5 +1,6 @@
-import otel from '@opentelemetry/core'
-import otelapi from '@opentelemetry/api'
+
+const otel = require('@opentelemetry/core')
+const otelapi = require('@opentelemetry/api')
 
 const path = require('path');
 const express = require("express");
@@ -8,7 +9,21 @@ const app = express();
 
 
 app.get("/", (req, res) => {
-  return res.sendStatus(200)
+  console.log("Hit root endpoint w/ POST @ " + getTimestamp())
+
+  // const propogator = new otel.W3CTraceContextPropagator()
+  // const extractedContext = propogator.extract(req.headers);
+
+  console.log("Logging Request Headers:");
+  console.log(req.headers);
+
+  // console.log("Logging Response Headers:")
+  // console.log(res.header);
+
+  // res.setHeader = extractedContext;
+
+
+  return res.status(200).json('Responding to Server 1 Message');
 });
 
 app.post("/moveon", (req, res)=> {
@@ -16,7 +31,7 @@ app.post("/moveon", (req, res)=> {
 
     const propogator = new otel.W3CTraceContextPropagator()
     const extractedContext = propogator.extract(req.headers);
-    
+
     console.log("Logging Request Headers:");
     console.log(req.headers);
 
@@ -67,7 +82,7 @@ app.use((err, req, res, next) => {
   const defaultErr = {
     log: 'Express error handler caught unknown middleware error',
     status: 500,
-    message: { err: 'An error occurred' },
+    message: { err: err },
   };
   const errorObj = Object.assign({}, defaultErr, err);
   console.log(errorObj);
