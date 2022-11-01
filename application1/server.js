@@ -8,8 +8,6 @@ const express = require("express");
 const PORT = process.env.PORT || "3001";
 const app = express();
 
-// app.use(bodyParser.raw())
-// app.use(express.json());
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, './index.html'));
@@ -28,9 +26,6 @@ app.post("/moveon", (req, res)=> {
 
     //injext the context into the headers
     propogator.inject(context, headers)
-
-    // IN OTHER SERVICE, 
-    const gotContext = propogator.extract();
 
     fetch('http://a2:3002', headers)
     .then(response => {

@@ -1,20 +1,31 @@
-/* app.js */
+import otel from '@opentelemetry/core'
+import otelapi from '@opentelemetry/api'
+
 const path = require('path');
 const express = require("express");
 const PORT = process.env.PORT || "3002";
 const app = express();
 
-// app.use(bodyParser.raw())
-// app.use(express.json());
 
 app.get("/", (req, res) => {
   return res.sendStatus(200)
-  // res.sendFile(path.join(__dirname, './index.html'));
 });
+
 app.post("/moveon", (req, res)=> {
     console.log("Hit /moveon w/ POST @ " + getTimestamp())
 
-    res.redirect('http://a3:3003');
+    const propogator = new otel.W3CTraceContextPropagator()
+    const extractedContext = propogator.extract(req.headers);
+    
+    console.log("Logging Request Headers:");
+    console.log(req.headers);
+
+    console.log("Logging Response Headers:")
+    console.log(res.header);
+
+    res.setHeader = extractedContext;
+
+    return res.status(200).json('Responding to Server 1 Message');
 })
 
 function getTimestamp() {
