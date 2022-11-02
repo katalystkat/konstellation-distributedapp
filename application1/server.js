@@ -11,42 +11,26 @@ const { request } = require('http');
 const PORT = process.env.PORT || "3001";
 const app = express();
 
-interceptor.instrumentTraffic();
+// interceptor.instrumentTraffic();
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, './index.html'));
 });
 
 app.post("/moveon", async (req, res)=> {
-    console.log("Hit /moveon w/ POST @ " + getTimestamp())
+    console.log("\nReceived a Request in Endpoint: '/' @ " + getTimestamp())
 
-    // create a new propogator
-    const propogator = new otel.W3CTraceContextPropagator()
-    console.log("Propogator Created");
-
-    // get the current context
-    const context = otelapi.ROOT_CONTEXT;
-    console.log("Got Context");
-
-    const headers = {}
-
-    //injext the context into the headers
-    propogator.inject(context, headers)
-    console.log("Injected");
-
-    const response = await fetch('http://localhost:3002')
-    const data = await response.json();
-    console.log(data);
-
-    // return res.status(200).json('Route Completed')
-
-    
-    // fetch('http://localhost:3002', headers)
-    // .then(response => {
-    //   if (response.status === 200) {
-    //     return res.status(200).json('Route Completed');
-    //   }
-    // })
+    try {
+      const response = await fetch('http://localhost:3002/moveon') // Comment for container build
+      // const response = await fetch('http://d2:3002/moveon')// UNComment for container build
+      const data = await response.json();
+      console.log(data);
+      res.status(200).json("Route Completed!")
+    }
+    catch (err) {
+      console.log("Fetch Failed: " + err)
+      res.status(500).json("Request Failed. Reason: " + err);
+    }
 })
 
 function getTimestamp() {

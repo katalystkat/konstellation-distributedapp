@@ -1,46 +1,34 @@
 
 const otel = require('@opentelemetry/core')
-const otelapi = require('@opentelemetry/api')
+const interceptor = require('./requestInterceptor');
+const fetch = require('node-fetch');
 
-const path = require('path');
 const express = require("express");
 const PORT = process.env.PORT || "3002";
 const app = express();
 
+// interceptor.instrumentTraffic();
 
-app.get("/", (req, res) => {
-  console.log("Hit root endpoint w/ POST @ " + getTimestamp())
+app.get("/", async (req, res) => {
 
-  // const propogator = new otel.W3CTraceContextPropagator()
-  // const extractedContext = propogator.extract(req.headers);
-
-  console.log("Logging Request Headers:");
-  console.log(req.headers);
-
-  // console.log("Logging Response Headers:")
-  // console.log(res.header);
-
-  // res.setHeader = extractedContext;
-
-
-  return res.status(200).json('Responding to Server 1 Message');
+  return res.status(200).json('Route Completed');
 });
 
-app.post("/moveon", (req, res)=> {
-    console.log("Hit /moveon w/ POST @ " + getTimestamp())
+app.get("/moveon", async (req, res)=> {
+    console.log("\nReceived a Request in Endpoint: '/' @ " + getTimestamp())
 
-    const propogator = new otel.W3CTraceContextPropagator()
-    const extractedContext = propogator.extract(req.headers);
+    try {
+      const response = await fetch('http://localhost:3003/moveon')
+    // const response = await fetch('http://d2:3003/moveon') // UNComment for container build
+      const data = await response.json();
+      console.log(data);
+      return res.status(200).json("Hello from Server 2")
+    }
+    catch (err) {
+      console.log("Fetch Failed: " + err)
+      res.status(500).json("Request Failed. Reason: " + err);
+    }
 
-    console.log("Logging Request Headers:");
-    console.log(req.headers);
-
-    console.log("Logging Response Headers:")
-    console.log(res.header);
-
-    res.setHeader = extractedContext;
-
-    return res.status(200).json('Responding to Server 1 Message');
 })
 
 function getTimestamp() {

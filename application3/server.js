@@ -2,7 +2,6 @@
 const otel = require('@opentelemetry/core')
 const otelapi = require('@opentelemetry/api')
 
-const path = require('path');
 const express = require("express");
 const PORT = process.env.PORT || "3003";
 const app = express();
@@ -11,12 +10,15 @@ const app = express();
 // app.use(express.json());
 
 app.get("/", (req, res) => {
+  console.log("Received a Request in Endpoint: '/' @ " + getTimestamp())
 
+  res.json("Hello from Server 3");
 });
 
-app.post("/moveon", (req, res)=> {
-  console.log("Hit /moveon w/ POST @ " + getTimestamp())
-  res.status(200).json('yayyayayay')
+app.get("/moveon", async (req, res)=> {
+  console.log("\nReceived a Request in Endpoint: '/' @ " + getTimestamp())
+
+  return res.status(200).json('Hello from Server 3');
 })
 
 function getTimestamp() {

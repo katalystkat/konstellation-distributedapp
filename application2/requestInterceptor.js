@@ -1,15 +1,37 @@
-const mswjs = require('@mswjs/interceptors')
-const { ClientRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
-const express = require("express");
-const fetch = require('node-fetch')
+const { ClientRequestInterceptor} = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
+const { XMLHttpRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/XMLHttpRequest');
+const { FetchInterceptor } = require('@mswjs/interceptors/lib/interceptors/fetch');
+
 const otel = require('@opentelemetry/core')
 const otelapi = require('@opentelemetry/api')
+const fetch = require('node-fetch')
 
 
 function _instrumentHTTPTraffic() {
   const interceptor = new ClientRequestInterceptor();
+  // const interceptor2 = new XMLHttpRequestInterceptor();
+  // const interceptor3 = new FetchInterceptor();
 
   interceptor.apply();
+
+  // interceptor2.on('request', () => {
+  //   console.log("XML REQUEST");
+  // })
+
+  // interceptor2.on('response', () => {
+  //   console.log("XML RESPONSE");
+  // })
+
+  // interceptor3.on('request', () => {
+  //   console.log("FETCH REQUEST");
+  // })
+
+  // interceptor3.on('response', () => {
+  //   console.log("FETCH RESPONSE");
+  // })
+
+  console.log("Running InstrumentHTTPTraffic...")
+
 
   interceptor.on('request', async (request) => {
     
@@ -60,14 +82,12 @@ function _instrumentHTTPTraffic() {
       headers: headers2
     })
 
-
-    // request.respondWith({
-    //   status: response.status,
-    //   statusText: response.statusText,
-    //   headers: response.headers,
-    //   body: response.body,
-    // })
-
+    request.respondWith({
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      body: response.body,
+    })
     // request.respondWith({
     //   status: 200,
     //   statusText: 'OK',
@@ -81,34 +101,64 @@ function _instrumentHTTPTraffic() {
     // })
   })
 
-  // interceptor.on('response', (response) => {
-  //   // console.log("RESPONSE INTERCEPTED")
-  //   // let headers = response.headers.raw();
-  //   // console.log(headers);
-
-  //   // headers = {
-  //   //   ...headers,
-  //   //   'TraceID': '3215326437643543'
-  //   // }
-  //   // console.log(headers);
-
-    
-
-
-  //   // request.respondWith({
-  //   //   status: 200,
-  //   //   statusText: 'OK',
-  //   //   headers: {
-  //   //     'Content-Type': 'application/json',
-  //   //   },
-  //   //   body: JSON.stringify({
-  //   //     firstName: 'John',
-  //   //     lastName: 'Maverick',
-  //   //   })
-  //   // })
-  // })
-
 }
+//   interceptor.on('response', async (response) => {
+    
+//     console.log('\n');
+//     console.log("~~ RESPONSE INTERCEPTED ~~" + '\n')
+
+//     const propogator = new otel.W3CTraceContextPropagator();
+//     const context = otelapi.ROOT_CONTEXT;
+
+//     console.log("CURRENT PROPOGATOR")
+//     console.log(propogator);
+//     console.log('\n');
+    
+//     console.log("CURRENT CONTEXT")
+//     console.log(context);
+//     console.log('\n');
+    
+//     console.log("CURRENT CONTEXT VALUE")
+//     console.log(context.getValue());
+//     console.log('\n');
+
+//     // console.log("OTHER LOGS")
+//     // console.log("TraceID:")
+//     // console.log(context.TraceID);
+//     console.log("Trace:")
+//     console.log(otelapi.trace);
+//     // console.log("GetTracer:")
+//     // console.log(otelapi.trace.getTracer());
+//     // console.log("GetSpan:")
+//     // console.log(otelapi.trace.getSpan())
+//     // console.log("GetSpanContext:")
+//     // console.log(otelapi.trace.getSpanContext())
+//     // console.log("Trace Flags:")
+//     console.log(otelapi.TraceFlags);
+//     console.log('\n');
+    
+//     let headers = response.headers.raw();
+//     console.log(headers);
+
+//     const headers2 = {
+//       TraceID: 'd1bvhjkfhdsjkhkj4bvc42142-421u48291'
+//     }
+
+//     propogator.inject(context, headers2);
+
+//     // request.respondWith({
+//     //   status: 200,
+//     //   statusText: 'OK',
+//     //   headers: {
+//     //     'Content-Type': 'application/json',
+//     //   },
+//     //   body: JSON.stringify({
+//     //     firstName: 'John',
+//     //     lastName: 'Maverick',
+//     //   })
+//     // })
+//     })
+// }
 
 // function _instrumentHTTPTraffic() {
 //   const interceptor = createInterceptor({
