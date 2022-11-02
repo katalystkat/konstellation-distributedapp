@@ -16,12 +16,14 @@ app.get("/", async (req, res) => {
 
 app.get("/moveon", async (req, res)=> {
     console.log("\nReceived a Request in Endpoint: '/' @ " + getTimestamp())
+    console.log("Headers are:")
+    console.log(req.headers);
 
     try {
-      const response = await fetch('http://localhost:3003/moveon')
-    // const response = await fetch('http://d2:3003/moveon') // UNComment for container build
-      const data = await response.json();
-      console.log(data);
+    //   const response = await fetch('http://localhost:3003/moveon')
+    // // const response = await fetch('http://d2:3003/moveon') // UNComment for container build
+    //   const data = await response.json();
+    //   console.log(data);
       return res.status(200).json("Hello from Server 2")
     }
     catch (err) {

@@ -11,7 +11,7 @@ const { request } = require('http');
 const PORT = process.env.PORT || "3001";
 const app = express();
 
-// interceptor.instrumentTraffic();
+interceptor.instrumentTraffic();
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, './index.html'));
@@ -20,9 +20,12 @@ app.get("/", (req, res) => {
 app.post("/moveon", async (req, res)=> {
     console.log("\nReceived a Request in Endpoint: '/' @ " + getTimestamp())
 
+    let url;
+    if(process.env.NODE_ENV === 'development') url = 'http://localhost:3002/moveon';
+    if(process.env.NODE_ENV === 'production') url = 'http://d2:3002/moveon';
+
     try {
-      const response = await fetch('http://localhost:3002/moveon') // Comment for container build
-      // const response = await fetch('http://d2:3002/moveon')// UNComment for container build
+      const response = await fetch(url) // Comment for container build
       const data = await response.json();
       console.log(data);
       res.status(200).json("Route Completed!")

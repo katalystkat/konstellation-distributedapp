@@ -46,19 +46,57 @@ function _instrumentHTTPTraffic() {
     console.log(otelapi.TraceFlags);
     console.log('\n');
     
-    let headers = request.headers.raw();
-    console.log(headers);
-
-    const headers2 = {
+    const updatedHeaders = {
+      ...request.headers.all(),
       TraceID: 'd1bvhjkfhdsjkhkj4bvc42142-421u48291'
     }
 
-    propogator.inject(context, headers2);
+    propogator.inject(context, updatedHeaders);
 
-    const url = request.url;
-    const response = await fetch(url, {
-      headers: headers2
-    })
+    if(!request.headers.all()['trace-id']) {
+        const url = request.url;
+        const response = await fetch(url, {
+          headers: updatedHeaders
+      })
+      // request.respondWith({
+      //   status: request.headers.all(),
+      //   statusText: response.statusText,
+      //   headers: {
+      //     ...response.headers,
+      //     'trace-id': 'd1bvhjkfhdsjkhkj4bvc42142-421u48291'
+      //   },
+      //   body: response.body,
+      // })
+    }
+
+
+  }
+)}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // request.respondWith({
@@ -79,7 +117,7 @@ function _instrumentHTTPTraffic() {
     //     lastName: 'Maverick',
     //   })
     // })
-  })
+  // })
 
   // interceptor.on('response', (response) => {
   //   // console.log("RESPONSE INTERCEPTED")
@@ -108,7 +146,7 @@ function _instrumentHTTPTraffic() {
   //   // })
   // })
 
-}
+// }
 
 // function _instrumentHTTPTraffic() {
 //   const interceptor = createInterceptor({
