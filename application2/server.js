@@ -26,6 +26,7 @@ app.get("/moveon", async (req, res)=> {
       //const response = await fetch('url')
       // const data = await response.json();
       // console.log(data);
+      res.setHeader('test', 'test')
       return res.status(200).json("Hello from Server 2")
     }
     catch (err) {

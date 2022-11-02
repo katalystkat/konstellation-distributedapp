@@ -40,12 +40,39 @@ async function _instrumentHTTPTraffic() {
       let mockResponse = await fetch(defaultUrl, {
         headers: mockHeaders
       })
-      console.log(mockResponse.headers)
-    }
+      const mockResponseData = mockResponse.json();
 
-    // request.respondWith(mockResponse)
+      const responsePayload = constructResponsePayload(mockResponseData.status, 
+        mockResponseData.statusText, 
+        mockResponseData.headers, 
+        mockResponseData.body
+        )
+
+      console.log(mockResponseData.headers)
+
+      request.respondWith(
+        {
+          status: 200,
+          statusText: 'OK',
+          headers: mockResponse.headers,
+          body: JSON.stringify({
+            firstName: 'John',
+            lastName: 'Maverick',
+          })
+        }
+      )
+    }
     
   })
+}
+
+function constructResponsePayload(status, statusText, headers, body) {
+  return {
+    status: status,
+    statusText: statusText,
+    headers: headers,
+    body: body
+  }
 }
 
 
