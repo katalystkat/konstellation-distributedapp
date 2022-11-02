@@ -8,20 +8,15 @@
 const mswjs = require('@mswjs/interceptors')
 const { ClientRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
 const { FetchInterceptor } = require('@mswjs/interceptors/lib/interceptors/fetch');
+const { response } = require('express');
 const express = require("express");
 const fetch = require('node-fetch');
 
 
 async function _instrumentHTTPTraffic() {
   const interceptor = new ClientRequestInterceptor();
-  // const fetchInterceptor = new FetchInterceptor();
 
   interceptor.apply();
-  // fetchInterceptor.apply();
-
-  // fetchInterceptor.on('request', async (request) => {
-  //   console.log('caught fetch');
-  // })
 
   interceptor.on('request', async (request) => {
 
@@ -48,13 +43,23 @@ async function _instrumentHTTPTraffic() {
         mockResponseData.body
         )
 
-      console.log(mockResponseData.headers)
+      console.log("\nMOCK RESPONSE HEADERS")
+      console.log(mockResponse.headers)
+
+      const headersObj = {};
+
+      for(const header of mockResponse.headers) {
+        headersObj[header[0]] = header[1];
+      }
+
+      console.log("\nHEADERS OBJ VALUES")
+      console.log(headersObj);
 
       request.respondWith(
         {
           status: 200,
           statusText: 'OK',
-          headers: mockResponse.headers,
+          headers: headersObj,
           body: JSON.stringify({
             firstName: 'John',
             lastName: 'Maverick',
