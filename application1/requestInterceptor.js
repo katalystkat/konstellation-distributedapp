@@ -1,79 +1,91 @@
+// const mswjs = require('@mswjs/interceptors')
+// const { ClientRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
+// const express = require("express");
+// const fetch = require('node-fetch')
+// const otel = require('@opentelemetry/core')
+// const otelapi = require('@opentelemetry/api')
+
 const mswjs = require('@mswjs/interceptors')
 const { ClientRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
+const { FetchInterceptor } = require('@mswjs/interceptors/lib/interceptors/fetch');
 const express = require("express");
-const fetch = require('node-fetch')
-const otel = require('@opentelemetry/core')
-const otelapi = require('@opentelemetry/api')
+const fetch = require('node-fetch');
 
 
-function _instrumentHTTPTraffic() {
+async function _instrumentHTTPTraffic() {
   const interceptor = new ClientRequestInterceptor();
+  // const fetchInterceptor = new FetchInterceptor();
 
   interceptor.apply();
+  // fetchInterceptor.apply();
+
+  // fetchInterceptor.on('request', async (request) => {
+  //   console.log('caught fetch');
+  // })
 
   interceptor.on('request', async (request) => {
-    
-    console.log('\n');
-    console.log("~~ REQUEST INTERCEPTED ~~" + '\n')
 
-    const propogator = new otel.W3CTraceContextPropagator();
-    const context = otelapi.ROOT_CONTEXT;
+    const defaultHeaders = request.headers.all()
+    const defaultUrl = request.url;
 
-    console.log("CURRENT PROPOGATOR")
-    console.log(propogator);
-    console.log('\n');
-    
-    console.log("CURRENT CONTEXT")
-    console.log(context);
-    console.log('\n');
-    
-    console.log("CURRENT CONTEXT VALUE")
-    console.log(context.getValue());
-    console.log('\n');
+    console.log("\nDEFAULT HEADERS:")
+    console.log(request.headers.all())
 
-    // console.log("OTHER LOGS")
-    // console.log("TraceID:")
-    // console.log(context.TraceID);
-    console.log("Trace:")
-    console.log(otelapi.trace);
-    // console.log("GetTracer:")
-    // console.log(otelapi.trace.getTracer());
-    // console.log("GetSpan:")
-    // console.log(otelapi.trace.getSpan())
-    // console.log("GetSpanContext:")
-    // console.log(otelapi.trace.getSpanContext())
-    // console.log("Trace Flags:")
-    console.log(otelapi.TraceFlags);
-    console.log('\n');
-    
-    const updatedHeaders = {
-      ...request.headers.all(),
-      TraceID: 'd1bvhjkfhdsjkhkj4bvc42142-421u48291'
+    let mockHeaders = {
+      ...defaultHeaders,
+      mock: 'true'
     }
 
-    propogator.inject(context, updatedHeaders);
-
-    if(!request.headers.all()['trace-id']) {
-        const url = request.url;
-        const response = await fetch(url, {
-          headers: updatedHeaders
+    if(!request.headers.all().mock) {
+      let mockResponse = await fetch(defaultUrl, {
+        headers: mockHeaders
       })
-      // request.respondWith({
-      //   status: request.headers.all(),
-      //   statusText: response.statusText,
-      //   headers: {
-      //     ...response.headers,
-      //     'trace-id': 'd1bvhjkfhdsjkhkj4bvc42142-421u48291'
-      //   },
-      //   body: response.body,
-      // })
+      console.log(mockResponse.headers)
     }
 
+    // request.respondWith(mockResponse)
+    
+  })
+}
 
-  }
-)}
+
+// function _instrumentHTTPTraffic() {
+//   const interceptor = new ClientRequestInterceptor();
+
+//   interceptor.apply();
+
+//   interceptor.on('request', async (request) => {
+
+//     console.log("REQUEST INTERCEPTED")
+
+//     let headers = request.headers.raw();
+//     console.log(headers);
+
+//     const url = request.url;
+//     const response = await fetch(url, {
+//       headers: {
+//         TraceID: 'd1bvhjkfhdsjkhkj4bvc42142-421u48291'
+//       }
+//     })
 
 
+//     request.respondWith({
+//       status: 200,
+//       statusText: 'OK',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         firstName: 'John',
+//         lastName: 'Maverick',
+//       })
+//     })
+//   })
+// }
+
+module.exports = {
+  instrumentTraffic: _instrumentHTTPTraffic
+}
 
 
 

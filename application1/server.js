@@ -27,7 +27,13 @@ app.post("/moveon", async (req, res)=> {
     try {
       const response = await fetch(url) // Comment for container build
       const data = await response.json();
+
+      console.log("\nRECEIVED RESPONSE:")
       console.log(data);
+
+      console.log("\nRESPONSE HEADERS:")
+      console.log(response.headers)
+
       res.status(200).json("Route Completed!")
     }
     catch (err) {
