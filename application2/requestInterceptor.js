@@ -8,15 +8,21 @@ const fetch = require('node-fetch')
 
 
 function _instrumentHTTPTraffic() {
-  // const interceptor = new ClientRequestInterceptor();
 
-  // interceptor.apply();
+  const interceptor = new ClientRequestInterceptor();
 
-  // console.log("Running InstrumentHTTPTraffic...")
+  interceptor.apply();
 
-  // interceptor.on('request', async (request) => {
+  interceptor.on('request', async (request) => {
 
-  // })
+    const defaultHeaders = request.headers.all()
+    const defaultUrl = request.url;
+
+    // console.log("\nDEFAULT HEADERS:")
+    // console.log(defaultHeaders)
+
+  })
+  
 }
 
 module.exports = {

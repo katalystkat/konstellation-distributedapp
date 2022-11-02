@@ -1,17 +1,10 @@
-// const mswjs = require('@mswjs/interceptors')
-// const { ClientRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
-// const express = require("express");
-// const fetch = require('node-fetch')
-// const otel = require('@opentelemetry/core')
-// const otelapi = require('@opentelemetry/api')
-
-const mswjs = require('@mswjs/interceptors')
 const { ClientRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
-const { FetchInterceptor } = require('@mswjs/interceptors/lib/interceptors/fetch');
-const { response } = require('express');
-const express = require("express");
 const fetch = require('node-fetch');
+const { v4: uuidv4 } = require('uuid');
 
+const cache = {
+
+}
 
 async function _instrumentHTTPTraffic() {
   const interceptor = new ClientRequestInterceptor();
@@ -24,14 +17,16 @@ async function _instrumentHTTPTraffic() {
     const defaultUrl = request.url;
 
     // console.log("\nDEFAULT HEADERS:")
-    // console.log(request.headers.all())
+    // console.log(defaultHeaders)
 
+    if(!request.headers.all()['mock-id']) {
+      const requestMockId = uuidv4();
+      cache[requestMockId] = true;
 
-    if(!request.headers.all().mock) {
       let mockResponse = await fetch(defaultUrl, {
         headers: {
           ...defaultHeaders,
-          mock: 'true'
+          'mock-id': requestMockId
         }
       })
       
@@ -40,65 +35,23 @@ async function _instrumentHTTPTraffic() {
       
       // console.log("\nHEADERS OBJ VALUES")
       // console.log(headersObj);
-      
+
       const mockResponseData = await mockResponse.json();
+      const responseMockId = uuidv4();
+      cache[responseMockId] = true;
 
       request.respondWith({
           status: mockResponse.status,
           statusText: mockResponse.statusText,
           headers: {
             ...defaultHeaders,
-            mock: 'true',
+            'mock-id': responseMockId
           },
           body: JSON.stringify(mockResponseData)
         })
       }
   })
 }
-
-function constructResponsePayload(status, statusText, headers, body) {
-  return {
-    status: status,
-    statusText: statusText,
-    headers: headers,
-    body: body
-  }
-}
-
-
-// function _instrumentHTTPTraffic() {
-//   const interceptor = new ClientRequestInterceptor();
-
-//   interceptor.apply();
-
-//   interceptor.on('request', async (request) => {
-
-//     console.log("REQUEST INTERCEPTED")
-
-//     let headers = request.headers.raw();
-//     console.log(headers);
-
-//     const url = request.url;
-//     const response = await fetch(url, {
-//       headers: {
-//         TraceID: 'd1bvhjkfhdsjkhkj4bvc42142-421u48291'
-//       }
-//     })
-
-
-//     request.respondWith({
-//       status: 200,
-//       statusText: 'OK',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         firstName: 'John',
-//         lastName: 'Maverick',
-//       })
-//     })
-//   })
-// }
 
 module.exports = {
   instrumentTraffic: _instrumentHTTPTraffic
