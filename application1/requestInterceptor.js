@@ -23,51 +23,36 @@ async function _instrumentHTTPTraffic() {
     const defaultHeaders = request.headers.all()
     const defaultUrl = request.url;
 
-    console.log("\nDEFAULT HEADERS:")
-    console.log(request.headers.all())
+    // console.log("\nDEFAULT HEADERS:")
+    // console.log(request.headers.all())
 
-    let mockHeaders = {
-      ...defaultHeaders,
-      mock: 'true'
-    }
 
     if(!request.headers.all().mock) {
       let mockResponse = await fetch(defaultUrl, {
-        headers: mockHeaders
-      })
-      const mockResponseData = mockResponse.json();
-
-      const responsePayload = constructResponsePayload(mockResponseData.status, 
-        mockResponseData.statusText, 
-        mockResponseData.headers, 
-        mockResponseData.body
-        )
-
-      console.log("\nMOCK RESPONSE HEADERS")
-      console.log(mockResponse.headers)
-
-      const headersObj = {};
-
-      for(const header of mockResponse.headers) {
-        headersObj[header[0]] = header[1];
-      }
-
-      console.log("\nHEADERS OBJ VALUES")
-      console.log(headersObj);
-
-      request.respondWith(
-        {
-          status: 200,
-          statusText: 'OK',
-          headers: headersObj,
-          body: JSON.stringify({
-            firstName: 'John',
-            lastName: 'Maverick',
-          })
+        headers: {
+          ...defaultHeaders,
+          mock: 'true'
         }
-      )
-    }
-    
+      })
+      
+      // console.log("\nMOCK RESPONSE HEADERS")
+      // console.log(mockResponse.headers)
+      
+      // console.log("\nHEADERS OBJ VALUES")
+      // console.log(headersObj);
+      
+      const mockResponseData = await mockResponse.json();
+
+      request.respondWith({
+          status: mockResponse.status,
+          statusText: mockResponse.statusText,
+          headers: {
+            ...defaultHeaders,
+            mock: 'true',
+          },
+          body: JSON.stringify(mockResponseData)
+        })
+      }
   })
 }
 

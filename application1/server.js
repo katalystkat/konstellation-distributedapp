@@ -1,13 +1,10 @@
 /* app.js */
 
-const otel = require('@opentelemetry/core')
-const otelapi = require('@opentelemetry/api')
 const fetch = require('node-fetch')
 const interceptor = require('./requestInterceptor')
 
 const path = require('path');
 const express = require("express");
-const { request } = require('http');
 const PORT = process.env.PORT || "3001";
 const app = express();
 
