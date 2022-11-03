@@ -1,5 +1,7 @@
-/* app.js */
-const path = require('path');
+
+const otel = require('@opentelemetry/core')
+const otelapi = require('@opentelemetry/api')
+
 const express = require("express");
 const PORT = process.env.PORT || "3003";
 const app = express();
@@ -8,12 +10,32 @@ const app = express();
 // app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, './index.html'));
+  console.log("Received a Request in Endpoint: '/' @ " + getTimestamp())
+
+  res.json("Hello from Server 3");
 });
-app.post("/moveon", (req, res)=> {
-    console.log('we made it fam')
-    res.status(200).json('yayyayayay')
+
+app.get("/moveon", async (req, res)=> {
+  console.log("\nReceived a Request in Endpoint: '/' @ " + getTimestamp())
+
+  return res.status(200).json('Hello from Server 3');
 })
+
+function getTimestamp() {
+  let ts = Date.now();
+
+  let date_ob = new Date(ts);
+  let hours = date_ob.getHours();
+  let minutes = date_ob.getMinutes();
+  let seconds = date_ob.getSeconds();
+  let date = date_ob.getDate();
+  let month = date_ob.getMonth() + 1;
+  let year = date_ob.getFullYear();
+
+// prints date & time in YYYY-MM-DD format
+  return (year + "-" + month + "-" + date + " at " + hours + ":" + minutes + ":" + seconds);
+}
+
 /*
 //this will write the trace data to testData.json
 app.use("/v1/traces", (req, res) => {
@@ -38,7 +60,7 @@ app.use((err, req, res, next) => {
   const defaultErr = {
     log: 'Express error handler caught unknown middleware error',
     status: 500,
-    message: { err: 'An error occurred' },
+    message: { err: err },
   };
   const errorObj = Object.assign({}, defaultErr, err);
   console.log(errorObj);

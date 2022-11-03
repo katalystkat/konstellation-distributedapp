@@ -1,20 +1,72 @@
-/* app.js */
-const path = require('path');
+
+const otel = require('@opentelemetry/core')
+const api = require('@opentelemetry/api')
+const interceptor = require('./requestInterceptor');
+const fetch = require('node-fetch');
+
 const express = require("express");
 const PORT = process.env.PORT || "3002";
 const app = express();
 
-// app.use(bodyParser.raw())
-// app.use(express.json());
+// interceptor.instrumentTraffic();
 
-app.get("/", (req, res) => {
-  return res.status(200)
-  // res.sendFile(path.join(__dirname, './index.html'));
+app.get("/", async (req, res) => {
+
+  return res.status(200).json('Route Completed');
 });
-app.post("/moveon", (req, res)=> {
-    console.log('moving on');
-    res.redirect('http://a3:3003');
+
+app.get("/moveon", async (req, res)=> {
+    console.log("\nReceived a Request in Endpoint: '/moveon' @ " + getTimestamp())
+    console.log(req.headers);
+
+    const propogator = new otel.W3CTraceContextPropagator()
+    const ctx = api.ROOT_CONTEXT;
+
+    console.log("\nCONTEXT:")
+    console.log(ctx);
+
+    console.log("\nCONTEXT VALUE:")
+    const value = ctx.getValue("some key")
+    console.log(value);
+
+    // const extractedContext = propogator.extract(value, req.headers);
+
+    // console.log("\nEXTRACTED CONTEXT:")
+    // console.log(extractedContext);
+
+    let url;
+    if(process.env.NODE_ENV === 'development') url = 'http://localhost:3002/moveon';
+    if(process.env.NODE_ENV === 'production') url = 'http://d2:3002/moveon';
+
+    try {
+      //const response = await fetch('url')
+      // const data = await response.json();
+      // console.log(data);
+      res.setHeader('test', 'test')
+      return res.status(200).json("Hello from Server 2")
+    }
+    catch (err) {
+      console.log("Fetch Failed: " + err)
+      res.status(500).json("Request Failed. Reason: " + err);
+    }
+
 })
+
+function getTimestamp() {
+  let ts = Date.now();
+
+  let date_ob = new Date(ts);
+  let hours = date_ob.getHours();
+  let minutes = date_ob.getMinutes();
+  let seconds = date_ob.getSeconds();
+  let date = date_ob.getDate();
+  let month = date_ob.getMonth() + 1;
+  let year = date_ob.getFullYear();
+
+// prints date & time in YYYY-MM-DD format
+  return (year + "-" + month + "-" + date + " at " + hours + ":" + minutes + ":" + seconds);
+}
+
 /*
 //this will write the trace data to testData.json
 app.use("/v1/traces", (req, res) => {
@@ -39,7 +91,7 @@ app.use((err, req, res, next) => {
   const defaultErr = {
     log: 'Express error handler caught unknown middleware error',
     status: 500,
-    message: { err: 'An error occurred' },
+    message: { err: err },
   };
   const errorObj = Object.assign({}, defaultErr, err);
   console.log(errorObj);
