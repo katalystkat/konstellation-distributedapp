@@ -1,6 +1,9 @@
 const { ClientRequestInterceptor } = require('@mswjs/interceptors/lib/interceptors/ClientRequest');
 const fetch = require('node-fetch');
 const { v4: uuidv4 } = require('uuid');
+const otel = require('@opentelemetry/core')
+const api = require('@opentelemetry/api')
+const { AsyncHooksContextManager } = require("@opentelemetry/context-async-hooks");
 
 const cache = {
 
@@ -12,7 +15,6 @@ async function _instrumentHTTPTraffic() {
   interceptor.apply();
 
   interceptor.on('request', async (request) => {
-
     const defaultHeaders = request.headers.all()
     const defaultUrl = request.url;
 
@@ -20,14 +22,39 @@ async function _instrumentHTTPTraffic() {
     // console.log(defaultHeaders)
 
     if(!request.headers.all()['mock-id']) {
+      const propogator = new otel.W3CTraceContextPropagator()
+      const contextManager = new AsyncHooksContextManager();
+      contextManager.enable();
+      api.context.setGlobalContextManager(contextManager);
+
+      const key = api.createContextKey("some key");
+      const ctx = api.ROOT_CONTEXT;
+      const ctx2 = ctx.setValue(key, "context 2");
+
+      console.log("\nPROPOGATOR DEFINITION:")
+      console.log(propogator)
+
+      
+      // const context = otelapi.trace.getSpanContext();
+      console.log("\nCONTEXT VALUES:")
+      console.log(ctx)
+      console.log(ctx2);
+      
+      let mockHeaders = defaultHeaders
+      // propogator.inject(context, mockHeaders);
+      
       const requestMockId = uuidv4();
       cache[requestMockId] = true;
+      
+      mockHeaders = {
+        ...mockHeaders,
+        'mock-id': requestMockId
+      }
+      
+      propogator.inject(ctx, mockHeaders)
 
       let mockResponse = await fetch(defaultUrl, {
-        headers: {
-          ...defaultHeaders,
-          'mock-id': requestMockId
-        }
+        headers: mockHeaders
       })
       
       // console.log("\nMOCK RESPONSE HEADERS")

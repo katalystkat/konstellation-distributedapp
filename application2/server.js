@@ -1,5 +1,6 @@
 
 const otel = require('@opentelemetry/core')
+const api = require('@opentelemetry/api')
 const interceptor = require('./requestInterceptor');
 const fetch = require('node-fetch');
 
@@ -15,8 +16,23 @@ app.get("/", async (req, res) => {
 });
 
 app.get("/moveon", async (req, res)=> {
-    console.log("\nReceived a Request in Endpoint: '/' @ " + getTimestamp())
+    console.log("\nReceived a Request in Endpoint: '/moveon' @ " + getTimestamp())
     console.log(req.headers);
+
+    const propogator = new otel.W3CTraceContextPropagator()
+    const ctx = api.ROOT_CONTEXT;
+
+    console.log("\nCONTEXT:")
+    console.log(ctx);
+
+    console.log("\nCONTEXT VALUE:")
+    const value = ctx.getValue("some key")
+    console.log(value);
+
+    // const extractedContext = propogator.extract(value, req.headers);
+
+    // console.log("\nEXTRACTED CONTEXT:")
+    // console.log(extractedContext);
 
     let url;
     if(process.env.NODE_ENV === 'development') url = 'http://localhost:3002/moveon';
